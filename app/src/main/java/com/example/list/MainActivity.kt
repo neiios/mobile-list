@@ -1,5 +1,6 @@
 package com.example.list
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,25 +12,22 @@ import androidx.recyclerview.widget.RecyclerView
 
 data class Item(val name: String)
 
-val items = listOf(
-    Item("Item 1"),
-    Item("Item 2"),
-    Item("Item 3"),
-    Item("Item 4"),
-    Item("Item 5")
-)
+class ItemAdapter(private val items: List<Item>) : RecyclerView.Adapter<ItemAdapter.ViewHolder>() {
+    var onItemClickListener: ((Item) -> Unit)? = null
 
-class ItemAdapter(private val items: List<Item>) :
-    RecyclerView.Adapter<ItemAdapter.ViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):
-            ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(android.R.layout.simple_list_item_1, parent, false)
+
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.textView.text = items[position].name
+
+        holder.itemView.setOnClickListener {
+            onItemClickListener?.invoke(items[position])
+        }
     }
 
     override fun getItemCount(): Int {
@@ -42,12 +40,28 @@ class ItemAdapter(private val items: List<Item>) :
 }
 
 class MainActivity : AppCompatActivity() {
+    private val items = listOf(
+        Item("Sporting"),
+        Item("Benfica"),
+        Item("Porto"),
+        Item("Braga"),
+        Item("Vitoria de Guimaraes"),
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
+
         val adapter = ItemAdapter(items)
+        adapter.onItemClickListener = { item ->
+            val intent = Intent(this, SecondActivity::class.java)
+            intent.putExtra("text", item.name)
+            startActivity(intent)
+        }
+
         recyclerView.adapter = adapter
     }
 }
